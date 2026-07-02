@@ -156,6 +156,23 @@
   body.dark .input-label { color: #e8f0fe; }
   body.dark .section-desc { color: #a0b4c8; }
   body.dark .bk-income, body.dark .bk-debt, body.dark .bk-edu, body.dark .bk-final { color: inherit; }
+
+  /* Explanation text under breakdown cards */
+  .bk-explain {
+    font-size: 10px;
+    line-height: 1.5;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    opacity: 0.85;
+    font-style: italic;
+    display: none;
+  }
+  .bk-explain.visible { display: block; }
+  body:not(.dark) .bk-income .bk-explain { border-color: rgba(30,58,90,0.2); }
+  body:not(.dark) .bk-debt   .bk-explain { border-color: rgba(127,29,29,0.2); }
+  body:not(.dark) .bk-edu    .bk-explain { border-color: rgba(133,77,14,0.2); }
+  body:not(.dark) .bk-final  .bk-explain { border-color: rgba(107,33,168,0.2); }
 </style>
 
 <script>
@@ -240,8 +257,7 @@
     <button class="dm-switch" onclick="toggleDark()" aria-label="Toggle dark mode"></button>
     <span class="dm-label" id="dm-label">☀️</span>
   </div>
-  <div class="header-brand">🛡️ Wealth Code PH</div>
-  <div class="header-sub">Insurance Needs Calculator</div>
+  <div class="header-brand">🛡️ Insurance Needs Calculator</div>
   <div class="header-title">Alamin kung magkano ang tamang coverage para sa iyo</div>
 </div>
 
@@ -357,24 +373,28 @@
       <div class="bk-label">Income</div>
       <div class="bk-amount" id="bk-income">₱0</div>
       <div class="bk-desc">Replacement fund</div>
+      <div class="bk-explain" id="bk-explain-income"></div>
     </div>
     <div class="bk-card bk-debt">
       <div class="bk-icon">💳</div>
       <div class="bk-label">Debts</div>
       <div class="bk-amount" id="bk-debt">₱0</div>
       <div class="bk-desc">Total liabilities</div>
+      <div class="bk-explain" id="bk-explain-debt"></div>
     </div>
     <div class="bk-card bk-edu">
       <div class="bk-icon">🎓</div>
       <div class="bk-label">Education</div>
       <div class="bk-amount" id="bk-edu">₱0</div>
       <div class="bk-desc">Children's fund</div>
+      <div class="bk-explain" id="bk-explain-edu"></div>
     </div>
     <div class="bk-card bk-final">
       <div class="bk-icon">🏥</div>
       <div class="bk-label">Final Exp.</div>
       <div class="bk-amount" id="bk-final">₱0</div>
       <div class="bk-desc">End-of-life costs</div>
+      <div class="bk-explain" id="bk-explain-final"></div>
     </div>
   </div>
 
@@ -402,9 +422,9 @@
 
 <!-- FOOTER -->
 <div class="footer">
-  <div>Wealth Code PH</div>
+  <div>JCC Business Solutions | All Rights Reserved</div>
   
-  <div style="font-size:9px;">Free tool by <strong>Wealth Code PH</strong> · For reference only · Consult your FA for exact coverage</div>
+  
 </div>
 
 <script>
@@ -537,6 +557,47 @@ function calculateResults() {
   document.getElementById('bk-debt').textContent   = fmt(debtTotal);
   document.getElementById('bk-edu').textContent    = fmt(eduTotal);
   document.getElementById('bk-final').textContent  = fmt(finalTotal);
+
+  // Dynamic explanations
+  function setExplain(id, msg) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (msg) { el.textContent = msg; el.classList.add('visible'); }
+    else { el.textContent = ''; el.classList.remove('visible'); }
+  }
+
+  if (incomeNeed > 0) {
+    setExplain('bk-explain-income',
+      'If you pass away today, your family will need ' + fmt(incomeNeed) +
+      ' to replace your income for ' + incomeYears + ' year' + (incomeYears > 1 ? 's' : '') + '.');
+  } else {
+    setExplain('bk-explain-income', null);
+  }
+
+  if (debtTotal > 0) {
+    setExplain('bk-explain-debt',
+      'Your family would inherit ' + fmt(debtTotal) +
+      ' in debts. This coverage ensures they won\'t struggle to pay it.');
+  } else {
+    setExplain('bk-explain-debt', null);
+  }
+
+  if (eduTotal > 0) {
+    var n = parseInt(document.getElementById('num_children').value) || 0;
+    setExplain('bk-explain-edu',
+      fmt(eduTotal) + ' is needed to secure the education of your ' +
+      n + ' child' + (n > 1 ? 'ren' : '') + ' even without you.');
+  } else {
+    setExplain('bk-explain-edu', null);
+  }
+
+  if (finalTotal > 0) {
+    setExplain('bk-explain-final',
+      'Covers funeral, hospital bills & legal fees totaling ' + fmt(finalTotal) +
+      ' so your family won\'t carry this burden alone.');
+  } else {
+    setExplain('bk-explain-final', null);
+  }
 
   const recBox   = document.getElementById('rec-box');
   const recTitle = document.getElementById('rec-title');
